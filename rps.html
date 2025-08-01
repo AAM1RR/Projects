@@ -53,10 +53,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2rem;
+            gap: 1.5rem; /* Reduced gap for tighter layout */
             width: 100%;
             max-width: 1000px;
-            padding: 3rem;
+            padding: 2rem; /* Reduced padding */
             background-color: #121212;
             border-radius: 1.5rem;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
@@ -71,7 +71,7 @@
         }
 
         /* Titles */
-        .hub-title {
+        .hub-title, .game-title {
             font-size: 4rem;
             text-transform: uppercase;
             letter-spacing: 0.15em;
@@ -124,230 +124,48 @@
             display: none; /* Initially hidden */
         }
         
-        /* Rock Paper Scissors specific styles (merged from original file) */
-        h1 {
-            font-size: 4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: #fff;
-            text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.2);
-        }
+        /* --- Rock Paper Scissors specific styles --- */
+        .choices-container { display: flex; justify-content: space-around; width: 100%; padding: 1rem 0; }
+        .choice-display { display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 45%; }
+        .choice-label { font-size: 1.8rem; color: #ddd; text-transform: uppercase; letter-spacing: 0.1em; }
+        .choice-result { min-height: 10rem; font-size: 7rem; color: #aaa; display: flex; justify-content: center; align-items: center; text-shadow: 0 0 5px rgba(0, 0, 0, 0.5); transition: all 0.3s ease-out; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .player-choice, .computer-choice { color: #fff; text-shadow: 2px 2px 4px #444; }
+        .result-message { min-height: 4rem; font-size: 3rem; text-align: center; text-transform: uppercase; letter-spacing: 0.1em; color: #eee; text-shadow: 1px 1px 3px #555; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .buttons-container { display: flex; gap: 1.5rem; margin-top: 1rem; }
+        .game-button { padding: 1rem 2.5rem; font-size: 1.5rem; font-weight: bold; text-transform: uppercase; color: #fff; background-color: #333; border: 2px solid #555; border-radius: 0.75rem; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); cursor: pointer; transition: all 0.3s ease; }
+        .game-button:hover:not(:disabled) { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6); background-color: #444; }
+        .game-button:disabled { background-color: #222; color: #666; cursor: not-allowed; box-shadow: none; transform: none; }
+        #muteButton { position: absolute; top: 2rem; right: 2rem; font-size: 1.5rem; color: #fff; background: rgba(0, 0, 0, 0.5); border: 2px solid #fff; border-radius: 50%; width: 3rem; height: 3rem; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease-in-out; z-index: 10; }
+        #muteButton:hover { transform: scale(1.1); background: rgba(0, 0, 0, 0.7); }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; font-size: 2rem; text-align: center; z-index: 1000; }
+        #webcam { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+        .score-container { display: flex; justify-content: space-around; width: 100%; font-size: 2.2rem; margin-top: 1rem; color: #fff; text-shadow: 1px 1px 3px #555; }
+        .round-counter { font-size: 2rem; color: #ddd; text-align: center; margin-top: 1rem; text-shadow: 1px 1px 2px #333; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 1001; }
+        .modal-content { background: #121212; padding: 3rem; border-radius: 1.5rem; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7); text-align: center; color: #ffffff; font-size: 1.8rem; border: 2px solid #fff; }
 
-        .choices-container {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            padding: 1rem 0;
-        }
-
-        .choice-display {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            width: 45%;
-        }
-
-        .choice-label {
-            font-size: 1.8rem;
-            color: #ddd;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .choice-result {
-            min-height: 10rem;
-            font-size: 7rem;
-            color: #aaa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease-out;
-            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-        
-        @keyframes popIn {
-            from { transform: scale(0); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .player-choice {
-            color: #fff;
-            text-shadow: 2px 2px 4px #444;
-        }
-        
-        .computer-choice {
-            color: #fff;
-            text-shadow: 2px 2px 4px #444;
-        }
-
-        .shaking-hand {
-            animation: shake 0.2s infinite;
-        }
-
-        @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-5deg); }
-            50% { transform: rotate(0deg); }
-            75% { transform: rotate(5deg); }
-            100% { transform: rotate(0deg); }
-        }
-        
-        .result-message {
-            min-height: 4rem;
-            font-size: 3rem;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #eee;
-            text-shadow: 1px 1px 3px #555;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .buttons-container {
-            display: flex;
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-        
-        .game-button {
-            padding: 1rem 2.5rem;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #fff;
-            background-color: #333;
-            border: 2px solid #555;
-            border-radius: 0.75rem;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .game-button:hover:not(:disabled) {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
-            background-color: #444;
-        }
-        
-        .game-button:disabled {
-            background-color: #222;
-            color: #666;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        #muteButton {
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
-            font-size: 1.5rem;
-            color: #fff;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #fff;
-            border-radius: 50%;
-            width: 3rem;
-            height: 3rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            z-index: 10;
-        }
-
-        #muteButton:hover {
-            transform: scale(1.1);
-            background: rgba(0, 0, 0, 0.7);
-        }
-        
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 1rem;
-            font-size: 2rem;
-            text-align: center;
-            z-index: 1000;
-        }
-        
-        /* The video element is now hidden from the user */
-        #webcam {
-            position: absolute;
-            top: -9999px;
-            left: -9999px;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-        }
-        
-        .score-container {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            font-size: 2.2rem;
-            margin-top: 1rem;
-            color: #fff;
-            text-shadow: 1px 1px 3px #555;
-        }
-
-        .round-counter {
-            font-size: 2rem;
-            color: #ddd;
-            text-align: center;
-            margin-top: 1rem;
-            text-shadow: 1px 1px 2px #333;
-        }
-        
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1001;
-        }
-        .modal-content {
-            background: #121212;
-            padding: 3rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
-            text-align: center;
-            color: #ffffff;
-            font-size: 1.8rem;
-            border: 2px solid #fff;
-        }
+        /* --- Tic Tac Toe specific styles --- */
+        #tic-tac-toe-status { font-size: 2.5rem; min-height: 3rem; text-align: center; text-transform: uppercase; letter-spacing: 0.1em; color: #eee; text-shadow: 1px 1px 3px #555; margin-bottom: 1rem; }
+        #tic-tac-toe-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; width: 100%; max-width: 400px; margin: 1rem 0; }
+        .tic-tac-toe-cell { background-color: #2a2a2a; border: 2px solid #444; border-radius: 0.75rem; aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; font-size: 5rem; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease; }
+        .tic-tac-toe-cell:hover { background-color: #3a3a3a; }
+        .tic-tac-toe-cell.x { color: #34D399; }
+        .tic-tac-toe-cell.o { color: #F87171; }
+        #tic-tac-toe-reset-button { margin-top: 1rem; }
 
         @media (max-width: 768px) {
-            .hub-container, .game-container {
-                padding: 1.5rem;
-                gap: 1rem;
-            }
-            .hub-title, h1 { font-size: 2.5rem; letter-spacing: 0.1em; }
+            .hub-container, .game-container { padding: 1.5rem; gap: 1rem; }
+            .hub-title, .game-title, h1 { font-size: 2.5rem; letter-spacing: 0.1em; }
             .choice-label { font-size: 1.5rem; }
             .choice-result { font-size: 5rem; min-height: 8rem; }
             .result-message { font-size: 2.5rem; min-height: 3rem; }
             .game-button { padding: 0.75rem 2rem; font-size: 1.25rem; }
             .score-container { font-size: 1.8rem; }
             #muteButton { top: 1rem; right: 1rem; width: 2.5rem; height: 2.5rem; font-size: 1.25rem; }
+            #tic-tac-toe-status { font-size: 1.8rem; }
+            .tic-tac-toe-cell { font-size: 3.5rem; }
         }
     </style>
 </head>
@@ -356,81 +174,57 @@
     <div class="hub-container" id="mainContainer">
         <h1 class="hub-title" id="hubTitle">The Game Hub</h1>
         
-        <!-- Game list visible initially -->
         <div id="gameListContainer" class="game-list">
             <div class="game-card" data-game-id="rock-paper-scissors">
                 <h2>Rock Paper Scissors</h2>
                 <p class="text-gray-400">Play with your hand gestures!</p>
             </div>
-            <!-- Add more game cards here -->
+            <div class="game-card" data-game-id="tic-tac-toe">
+                <h2>Tic Tac Toe</h2>
+                <p class="text-gray-400">Player 1 (X) places O's. Player 2 (O) places X's. The board swaps randomly!</p>
+            </div>
         </div>
 
-        <!-- This is where the selected game will be loaded -->
         <div id="gameContentContainer"></div>
-        
         <button id="backButton">Back to Hub</button>
     </div>
 
-    <!-- The Rock Paper Scissors game content, stored in a hidden template -->
+    <!-- Rock Paper Scissors Template -->
     <template id="rock-paper-scissors-template">
-        <div class="game-container" id="gameContainer">
-            <h1 class="text-center mb-8">Rock Paper Scissors</h1>
-            
-            <!-- Mute/Unmute button -->
-            <button id="muteButton" class="fa-solid fa-volume-high">🔊</button>
-
-            <!-- Custom sound effects. The win sound has been updated. -->
+        <div class="game-container" id="rpsGameContainer">
+            <h1 class="game-title text-center mb-8">Rock Paper Scissors</h1>
+            <button id="muteButton">🔊</button>
             <audio id="winSound" src="song.mp3" preload="auto"></audio>
             <audio id="loseSound" src="ayyoo.mp3" preload="auto"></audio>
             <audio id="tieSound" src="sayip.mp3" preload="auto"></audio>
-
-            <!-- Modal for messages -->
-            <div id="messageModal" class="modal">
-                <div class="modal-content">
-                    <p id="modalMessage"></p>
-                </div>
-            </div>
-
-            <!-- Loading overlay for model and webcam -->
-            <div id="loadingOverlay" class="loading-overlay">
-                <span>Loading game assets...</span>
-                <span>Please allow webcam access.</span>
-            </div>
-
+            <audio id="goSound" src="go.mp3" preload="auto"></audio>
+            <div id="messageModal" class="modal"><div class="modal-content"><p id="modalMessage"></p></div></div>
+            <div id="loadingOverlay" class="loading-overlay"><span>Loading...</span></div>
             <div class="choices-container">
-                <!-- Player Display -->
-                <div class="choice-display">
-                    <span class="choice-label">Your Hand</span>
-                    <span id="playerChoiceDisplay" class="choice-result player-choice">?</span>
-                </div>
-
-                <!-- Computer Display -->
-                <div class="choice-display">
-                    <span class="choice-label">Computer</span>
-                    <span id="computerChoiceDisplay" class="choice-result computer-choice">?</span>
-                </div>
+                <div class="choice-display"><span class="choice-label">Your Hand</span><span id="playerChoiceDisplay" class="choice-result player-choice">?</span></div>
+                <div class="choice-display"><span class="choice-label">Computer</span><span id="computerChoiceDisplay" class="choice-result computer-choice">?</span></div>
             </div>
-
-            <!-- Game result message -->
             <div id="resultMessage" class="result-message">Press START to play!</div>
-
-            <!-- Round and Score container -->
-            <div class="flex flex-col items-center">
-                <div class="flex flex-col gap-2 w-full text-center">
-                    <span>You: <span id="playerScore">0</span></span>
-                    <span>Computer: <span id="computerScore">0</span></span>
-                </div>
+            <div class="flex flex-col items-center w-full">
+                <div class="score-container w-full"><span>You: <span id="playerScore">0</span></span><span>Computer: <span id="computerScore">0</span></span></div>
                 <div class="round-counter mt-4">Round <span id="roundCounter">0</span> / 5</div>
             </div>
-
-            <!-- Hidden webcam feed - used for hand detection without being visible -->
             <video id="webcam" playsinline></video>
+            <div class="buttons-container"><button id="startButton" class="game-button">Start Round</button><button id="resetButton" class="game-button" disabled>Reset Game</button></div>
+        </div>
+    </template>
 
-            <!-- Buttons -->
-            <div class="buttons-container">
-                <button id="startButton" class="game-button">Start Round</button>
-                <button id="resetButton" class="game-button" disabled>Reset Game</button>
+    <!-- Tic Tac Toe Template -->
+    <template id="tic-tac-toe-template">
+        <div class="game-container" id="tttGameContainer">
+            <h1 class="game-title text-center">Tic Tac Toe</h1>
+            <div id="tic-tac-toe-status">Player X's Turn</div>
+            <div id="tic-tac-toe-board">
+                <div class="tic-tac-toe-cell" data-cell-index="0"></div><div class="tic-tac-toe-cell" data-cell-index="1"></div><div class="tic-tac-toe-cell" data-cell-index="2"></div>
+                <div class="tic-tac-toe-cell" data-cell-index="3"></div><div class="tic-tac-toe-cell" data-cell-index="4"></div><div class="tic-tac-toe-cell" data-cell-index="5"></div>
+                <div class="tic-tac-toe-cell" data-cell-index="6"></div><div class="tic-tac-toe-cell" data-cell-index="7"></div><div class="tic-tac-toe-cell" data-cell-index="8"></div>
             </div>
+            <button id="tic-tac-toe-reset-button" class="game-button">Reset Game</button>
         </div>
     </template>
 
@@ -442,25 +236,17 @@
             const gameListContainer = document.getElementById('gameListContainer');
             const gameContentContainer = document.getElementById('gameContentContainer');
             const backButton = document.getElementById('backButton');
+            let activeGameId = null;
             
             // --- Hub Logic ---
-            
-            /**
-             * Loads the content of a game from its template and appends it to the main container.
-             * @param {string} gameId - The ID of the game to load (matches the template ID).
-             */
             function loadGame(gameId) {
                 const template = document.getElementById(`${gameId}-template`);
-                if (!template) {
-                    console.error(`Template with ID '${gameId}-template' not found.`);
-                    return;
-                }
+                if (!template) return;
                 
-                // Clone the template content and append it
+                activeGameId = gameId;
                 const gameContent = template.content.cloneNode(true);
                 gameContentContainer.appendChild(gameContent);
 
-                // Hide the hub list and show the game content and back button
                 gameListContainer.style.display = 'none';
                 gameContentContainer.style.display = 'block';
                 backButton.style.display = 'block';
@@ -468,186 +254,117 @@
                 mainContainer.classList.remove('hub-container');
                 mainContainer.classList.add('game-container');
 
-                // Initialize the game's script
-                if (gameId === 'rock-paper-scissors') {
-                    initRockPaperScissors();
-                }
+                if (gameId === 'rock-paper-scissors') initRockPaperScissors();
+                if (gameId === 'tic-tac-toe') initTicTacToe();
             }
 
-            /**
-             * Resets the UI back to the main game hub.
-             */
             function unloadGame() {
-                // Remove all game content
+                if (activeGameId === 'rock-paper-scissors' && window.stopRps) {
+                    window.stopRps();
+                }
                 gameContentContainer.innerHTML = '';
                 
-                // Show the game list and hide the game content and back button
                 gameListContainer.style.display = 'flex';
                 gameContentContainer.style.display = 'none';
                 backButton.style.display = 'none';
                 hubTitle.style.display = 'block';
                 mainContainer.classList.add('hub-container');
                 mainContainer.classList.remove('game-container');
+                activeGameId = null;
             }
 
-            // Event listener for the game cards
             gameListContainer.addEventListener('click', (event) => {
                 const gameCard = event.target.closest('.game-card');
-                if (gameCard) {
-                    const gameId = gameCard.dataset.gameId;
-                    if (gameId) {
-                        loadGame(gameId);
-                    }
-                }
+                if (gameCard) loadGame(gameCard.dataset.gameId);
             });
 
-            // Event listener for the back button
             backButton.addEventListener('click', unloadGame);
 
-            // --- Rock Paper Scissors Game Logic (encapsulated) ---
-            
-            /**
-             * Initializes the Rock Paper Scissors game logic.
-             * This function is called after the game's HTML is loaded.
-             */
-            async function initRockPaperScissors() {
-                // --- UI Elements ---
+            // --- Rock Paper Scissors Game Logic ---
+            function initRockPaperScissors() {
+                // --- Get all UI elements ---
+                const webcamElement = document.getElementById('webcam');
                 const loadingOverlay = document.getElementById('loadingOverlay');
-                const gameContainer = document.getElementById('gameContainer');
                 const startButton = document.getElementById('startButton');
                 const resetButton = document.getElementById('resetButton');
-                const webcamElement = document.getElementById('webcam');
                 const playerChoiceDisplay = document.getElementById('playerChoiceDisplay');
                 const computerChoiceDisplay = document.getElementById('computerChoiceDisplay');
                 const resultMessage = document.getElementById('resultMessage');
                 const playerScoreSpan = document.getElementById('playerScore');
                 const computerScoreSpan = document.getElementById('computerScore');
                 const roundCounterSpan = document.getElementById('roundCounter');
-                const modal = document.getElementById('messageModal');
-                const modalMessage = document.getElementById('modalMessage');
                 const muteButton = document.getElementById('muteButton');
-                
-                // --- Audio Elements ---
-                const winSound = document.getElementById('winSound');
-                const loseSound = document.getElementById('loseSound');
-                const tieSound = document.getElementById('tieSound');
-                const goSound = document.getElementById('goSound');
-                const audioElements = [winSound, loseSound, tieSound, goSound];
+                const winSound = document.getElementById('winSound'), loseSound = document.getElementById('loseSound'), tieSound = document.getElementById('tieSound'), goSound = document.getElementById('goSound');
 
-                // --- Game State Variables ---
+                // --- Game State and Configuration ---
                 const choices = ['Rock', 'Paper', 'Scissors'];
-                const handIcons = {
-                    'Rock': '✊',
-                    'Paper': '✋',
-                    'Scissors': '✌️',
-                    'No Hand': '�️'
-                };
+                const handIcons = { 'Rock': '✊', 'Paper': '✋', 'Scissors': '✌️', 'No Hand': '?' }; // UPDATED
                 const MAX_ROUNDS = 5;
-                let detector = null;
-                let videoStream = null;
-                let lastPlayerChoice = '?';
-                let isRoundActive = false;
-                let countdownInterval = null;
-                let playerScore = 0;
-                let computerScore = 0;
-                let roundCount = 0;
-                let isMuted = false;
+                let detector = null, videoStream = null, lastPlayerChoice = '?';
+                let isRoundActive = false, isMuted = false;
+                let playerScore = 0, computerScore = 0, roundCount = 0;
+                let detectionInterval = null, countdownInterval = null, computerAnimationInterval = null; // UPDATED
+
+                // --- Cleanup function to be called when leaving the game ---
+                window.stopRps = () => {
+                    if (videoStream) videoStream.getTracks().forEach(track => track.stop());
+                    if (detectionInterval) cancelAnimationFrame(detectionInterval);
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    if (computerAnimationInterval) clearInterval(computerAnimationInterval); // UPDATED
+                    console.log("RPS resources released.");
+                };
                 
-                // --- Utility Functions ---
+                // --- Core Game Functions ---
 
-                // Function to show a custom message modal
-                function showMessageModal(message, duration = 3000) {
-                    modalMessage.textContent = message;
-                    modal.style.display = 'flex';
-                    setTimeout(() => {
-                        modal.style.display = 'none';
-                    }, duration);
-                }
-
-                // Function to determine hand gesture from landmarks
                 function getGesture(landmarks) {
-                    // Simplified logic: check for bent fingers.
-                    const tips = [8, 12, 16, 20];
-                    const knuckles = [6, 10, 14, 18];
-                    const thumbTipX = landmarks[4].x;
-                    const indexKnuckleX = landmarks[5].x;
+                    const isFingerExtended = (tipY, knuckleY) => tipY < knuckleY;
+                    const indexFingerExtended = isFingerExtended(landmarks[8].y, landmarks[6].y);
+                    const middleFingerExtended = isFingerExtended(landmarks[12].y, landmarks[10].y);
+                    const ringFingerExtended = isFingerExtended(landmarks[16].y, landmarks[14].y);
+                    const pinkyFingerExtended = isFingerExtended(landmarks[20].y, landmarks[18].y);
 
-                    let fingersUp = 0;
-                    for (let i = 0; i < tips.length; i++) {
-                        if (landmarks[tips[i]].y < landmarks[knuckles[i]].y) {
-                            fingersUp++;
-                        }
-                    }
-
-                    if (fingersUp === 0) {
-                        return 'Rock';
-                    }
-                    else if (fingersUp === 2) {
-                        if (landmarks[8].y < landmarks[6].y && landmarks[12].y < landmarks[10].y) {
-                            return 'Scissors';
-                        }
-                    }
-                    else if (fingersUp >= 3) {
-                        if (Math.abs(thumbTipX - indexKnuckleX) > 0.1) {
-                             return 'Paper';
-                        }
-                    }
+                    if (indexFingerExtended && middleFingerExtended && ringFingerExtended && pinkyFingerExtended) return 'Paper';
+                    if (indexFingerExtended && middleFingerExtended && !ringFingerExtended && !pinkyFingerExtended) return 'Scissors';
+                    if (!indexFingerExtended && !middleFingerExtended && !ringFingerExtended && !pinkyFingerExtended) return 'Rock';
                     return 'No Hand';
                 }
 
-                // Function to play a specified sound effect
-                function playSoundEffect(audioElement) {
-                    if (!isMuted) {
-                        audioElement.currentTime = 0; // Rewind to start in case it's already playing
-                        audioElement.play().catch(e => console.error("Error playing sound:", e));
-                    }
+                function playSoundEffect(audioElement) { 
+                    if (!isMuted && audioElement) { 
+                        audioElement.currentTime = 0; 
+                        audioElement.play().catch(e => console.warn("Audio play failed", e)); 
+                    } 
                 }
-
-
-                // --- Game Logic ---
-
-                // Main game loop for hand detection
+                
                 async function detectHand() {
-                    // Check if the video stream is still active, as it's now hidden
-                    if (!videoStream || !videoStream.active) {
-                        isRoundActive = false;
-                        showMessageModal("Camera is turned off. Please go back to the hub and re-enter the game.");
-                        return;
-                    }
-
+                    if (!videoStream || !videoStream.active) return;
                     if (detector) {
-                        const predictions = await detector.estimateHands(webcamElement);
-                        if (isRoundActive && predictions.length > 0) {
-                            // Only update the display with the live gesture when a round is active
-                            const gesture = getGesture(predictions[0].keypoints);
+                        const hands = await detector.estimateHands(webcamElement, {flipHorizontal: true});
+                        if (isRoundActive && hands.length > 0) {
+                            const gesture = getGesture(hands[0].keypoints);
                             playerChoiceDisplay.textContent = handIcons[gesture] || '?';
                             lastPlayerChoice = gesture;
-                        } else if (isRoundActive && predictions.length === 0) {
+                        } else if (isRoundActive) {
                             playerChoiceDisplay.textContent = handIcons['No Hand'];
                             lastPlayerChoice = 'No Hand';
-                            resultMessage.textContent = 'Place your hand in view!';
                         }
                     }
-                    requestAnimationFrame(detectHand);
+                    detectionInterval = requestAnimationFrame(detectHand);
                 }
-
-                // The main round logic
-                async function startRound() {
-                    if (isRoundActive) return;
-                    
+                
+                function startRound() {
+                    if (isRoundActive || roundCount >= MAX_ROUNDS) return;
                     isRoundActive = true;
                     startButton.disabled = true;
                     resetButton.disabled = true;
-
-                    // Reset UI for the new round
                     resultMessage.textContent = 'Get Ready!';
-                    playerChoiceDisplay.textContent = '?';
-                    computerChoiceDisplay.textContent = '?';
 
-                    // Add shaking animation to computer's hand
-                    computerChoiceDisplay.classList.add('shaking-hand');
-                    
-                    // Countdown to start the round
+                    // Start computer choice animation
+                    const emojiChoices = [handIcons.Rock, handIcons.Paper, handIcons.Scissors];
+                    computerAnimationInterval = setInterval(() => {
+                        computerChoiceDisplay.textContent = emojiChoices[Math.floor(Math.random() * emojiChoices.length)];
+                    }, 150);
+
                     let countdown = 3;
                     resultMessage.textContent = countdown;
                     countdownInterval = setInterval(() => {
@@ -660,52 +377,42 @@
                         } else {
                             clearInterval(countdownInterval);
                             countdownInterval = null;
-                            computerChoiceDisplay.classList.remove('shaking-hand');
-                            
-                            // Lock in choices and determine winner
-                            isRoundActive = false;
                             playRound();
                         }
                     }, 1000);
                 }
 
                 function playRound() {
+                    if (computerAnimationInterval) clearInterval(computerAnimationInterval); // Stop animation
+                    isRoundActive = false;
+                    
                     const playerChoice = lastPlayerChoice;
-                    if (playerChoice === 'No Hand' || playerChoice === '?') {
-                        showMessageModal("No hand detected! Try again.");
-                        resetRound();
-                        return;
-                    }
-
                     const computerChoice = choices[Math.floor(Math.random() * choices.length)];
                     
-                    // Update UI with final choices
-                    playerChoiceDisplay.textContent = handIcons[playerChoice];
+                    playerChoiceDisplay.textContent = handIcons[playerChoice] || '?';
                     computerChoiceDisplay.textContent = handIcons[computerChoice];
                     
-                    const result = getWinner(playerChoice, computerChoice);
-                    
-                    let resultText = '';
-                    if (result === 'win') {
-                        resultText = 'You Win!';
-                        resultMessage.style.color = '#fff';
-                        playerScore++;
-                        playerScoreSpan.textContent = playerScore;
-                        playSoundEffect(winSound);
-                    } else if (result === 'lose') {
-                        resultText = 'Computer Wins!';
-                        resultMessage.style.color = '#fff';
-                        computerScore++;
-                        computerScoreSpan.textContent = computerScore;
-                        playSoundEffect(loseSound);
+                    if (playerChoice === 'No Hand') {
+                        resultMessage.textContent = "No Hand Detected!";
+                        playSoundEffect(tieSound); // Treat as a tie/neutral sound
                     } else {
-                        resultText = 'It\'s a Tie!';
-                        resultMessage.style.color = '#eee';
-                        playSoundEffect(tieSound);
+                        const result = getWinner(playerChoice, computerChoice);
+                        if (result === 'win') {
+                            resultMessage.textContent = 'You Win!';
+                            playerScore++;
+                            playSoundEffect(winSound);
+                        } else if (result === 'lose') {
+                            resultMessage.textContent = 'Computer Wins!';
+                            computerScore++;
+                            playSoundEffect(loseSound);
+                        } else {
+                            resultMessage.textContent = "It's a Tie!";
+                            playSoundEffect(tieSound);
+                        }
                     }
-
-                    resultMessage.textContent = resultText;
                     
+                    playerScoreSpan.textContent = playerScore;
+                    computerScoreSpan.textContent = computerScore;
                     roundCount++;
                     roundCounterSpan.textContent = roundCount;
 
@@ -717,100 +424,133 @@
                     }
                 }
 
-                function announceGameWinner() {
-                    startButton.disabled = true;
-                    resetButton.disabled = false;
-
-                    let finalMessage = '';
-                    if (playerScore > computerScore) {
-                        finalMessage = `You win the game with ${playerScore} points!`;
-                    } else if (computerScore > playerScore) {
-                        finalMessage = `The computer wins the game with ${computerScore} points!`;
-                    } else {
-                        finalMessage = `The game is a tie! You both scored ${playerScore} points.`;
-                    }
-
-                    resultMessage.textContent = finalMessage;
-                    resultMessage.style.color = '#fff';
-                }
-
                 function getWinner(player, computer) {
                     if (player === computer) return 'tie';
-                    if (
-                        (player === 'Rock' && computer === 'Scissors') ||
-                        (player === 'Paper' && computer === 'Rock') ||
-                        (player === 'Scissors' && computer === 'Paper')
-                    ) return 'win';
+                    if ((player === 'Rock' && computer === 'Scissors') || (player === 'Paper' && computer === 'Rock') || (player === 'Scissors' && computer === 'Paper')) return 'win';
                     return 'lose';
                 }
 
-                function resetRound() {
-                    if (countdownInterval) {
-                        clearInterval(countdownInterval);
-                        computerChoiceDisplay.classList.remove('shaking-hand');
-                    }
-
-                    isRoundActive = false;
-                    startButton.disabled = false;
+                function announceGameWinner() {
+                    startButton.disabled = true;
                     resetButton.disabled = false;
-
-                    playerChoiceDisplay.textContent = '?';
-                    computerChoiceDisplay.textContent = '?';
-                    resultMessage.textContent = 'Press START to play!';
-                    resultMessage.style.color = '#eee';
+                    let finalMessage;
+                    if (playerScore > computerScore) finalMessage = `You win the game ${playerScore} to ${computerScore}!`;
+                    else if (computerScore > playerScore) finalMessage = `Computer wins ${computerScore} to ${playerScore}!`;
+                    else finalMessage = `It's a tie! ${playerScore} to ${playerScore}.`;
+                    resultMessage.textContent = finalMessage;
                 }
 
                 function resetGame() {
-                    resetRound();
-                    playerScore = 0;
-                    computerScore = 0;
-                    roundCount = 0;
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    if (computerAnimationInterval) clearInterval(computerAnimationInterval);
+                    isRoundActive = false;
+                    playerScore = 0; computerScore = 0; roundCount = 0;
                     playerScoreSpan.textContent = playerScore;
                     computerScoreSpan.textContent = computerScore;
                     roundCounterSpan.textContent = roundCount;
+                    playerChoiceDisplay.textContent = '?';
+                    computerChoiceDisplay.textContent = '?';
+                    resultMessage.textContent = 'Press START to play!';
+                    startButton.disabled = false;
+                    resetButton.disabled = true;
                 }
 
-                // --- Initialization and Event Listeners ---
-                // This part runs when the game is loaded from the hub
-                try {
-                    if (loadingOverlay) loadingOverlay.classList.remove('hidden');
-                    if (gameContainer) gameContainer.classList.add('hidden');
-                    
-                    // Get webcam stream but do not display it
-                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    webcamElement.srcObject = videoStream;
-                    await new Promise((resolve) => { webcamElement.onloadedmetadata = () => { resolve(videoStream); }; });
-                    webcamElement.play();
+                async function initialize() {
+                    try {
+                        loadingOverlay.style.display = 'flex';
+                        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        webcamElement.srcObject = videoStream;
+                        await new Promise((resolve) => { webcamElement.onloadedmetadata = resolve; });
+                        webcamElement.play();
+                        const model = handPoseDetection.SupportedModels.MediaPipeHands;
+                        const detectorConfig = { runtime: 'mediapipe', solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands', modelType: 'lite' };
+                        detector = await handPoseDetection.createDetector(model, detectorConfig);
+                        loadingOverlay.style.display = 'none';
+                        detectHand();
+                        startButton.addEventListener('click', startRound);
+                        resetButton.addEventListener('click', resetGame);
+                        muteButton.addEventListener('click', () => { isMuted = !isMuted; muteButton.textContent = isMuted ? '🔇' : '🔊'; });
+                    } catch (error) {
+                        console.error("Error initializing RPS:", error);
+                        loadingOverlay.innerHTML = `<div>Error: ${error.message}</div>`;
+                    }
+                }
+                initialize();
+            }
 
-                    const model = handPoseDetection.SupportedModels.MediaPipeHands;
-                    const detectorConfig = { runtime: 'mediapipe', solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands' };
-                    detector = await handPoseDetection.createDetector(model, detectorConfig);
-
-                    if (loadingOverlay) loadingOverlay.classList.add('hidden');
-                    if (gameContainer) gameContainer.classList.remove('hidden');
-
-                    detectHand();
-
-                    startButton.addEventListener('click', startRound);
-                    resetButton.addEventListener('click', resetGame);
-                    muteButton.addEventListener('click', () => {
-                        isMuted = !isMuted;
-                        muteButton.textContent = isMuted ? '🔇' : '🔊';
-                        audioElements.forEach(audio => {
-                            if (isMuted) {
-                                audio.pause();
-                            }
-                        });
+            // --- Tic Tac Toe Game Logic ---
+            function initTicTacToe() {
+                const statusDisplay = document.getElementById('tic-tac-toe-status');
+                const resetButton = document.getElementById('tic-tac-toe-reset-button');
+                const cells = document.querySelectorAll('.tic-tac-toe-cell');
+                let gameActive = true, currentPlayer = "X", boardState = Array(9).fill("");
+                let clickCount = 0, swapTriggerCount = Math.floor(Math.random() * 4) + 3;
+                const winningConditions = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
+                const playerXTurn = () => `Player X's Turn`, playerOTurn = () => `Player O's Turn`;
+                const winningMessage = (player) => `Player ${player} has won!`, drawMessage = () => `Game ended in a draw!`;
+                statusDisplay.innerHTML = playerXTurn();
+                function handleCellPlayed(cell, index) {
+                    const symbol = currentPlayer === "X" ? "O" : "X";
+                    boardState[index] = symbol;
+                    cell.innerHTML = symbol;
+                    cell.classList.add(symbol.toLowerCase());
+                }
+                function handlePlayerChange() {
+                    currentPlayer = currentPlayer === "X" ? "O" : "X";
+                    statusDisplay.innerHTML = currentPlayer === "X" ? playerXTurn() : playerOTurn();
+                }
+                function handleResultValidation() {
+                    let roundWon = false;
+                    for (const condition of winningConditions) {
+                        let [a, b, c] = [boardState[condition[0]], boardState[condition[1]], boardState[condition[2]]];
+                        if (a && a === b && b === c) { roundWon = true; break; }
+                    }
+                    if (roundWon) {
+                        const winnerSymbol = currentPlayer === "X" ? "O" : "X";
+                        const actualWinner = winnerSymbol === 'X' ? 'O' : 'X';
+                        statusDisplay.innerHTML = winningMessage(actualWinner);
+                        gameActive = false; return;
+                    }
+                    if (!boardState.includes("")) { statusDisplay.innerHTML = drawMessage(); gameActive = false; }
+                }
+                function swapBoard() {
+                    boardState = boardState.map(cell => (cell === 'X' ? 'O' : (cell === 'O' ? 'X' : '')));
+                    cells.forEach((cell, index) => {
+                        cell.innerHTML = boardState[index];
+                        cell.classList.remove('x', 'o');
+                        if (boardState[index]) cell.classList.add(boardState[index].toLowerCase());
                     });
-                    
-                    console.log('Rock Paper Scissors initialized and ready!');
-                } catch (error) {
-                    console.error("Error initializing game:", error);
-                    if (loadingOverlay) loadingOverlay.innerHTML = `<p>Error loading game. Please check your webcam and try again.</p><p>Details: ${error.message}</p>`;
+                    statusDisplay.innerHTML = "Board Swapped!";
+                    setTimeout(() => {
+                        statusDisplay.innerHTML = currentPlayer === "X" ? playerXTurn() : playerOTurn();
+                        handleResultValidation();
+                    }, 1500);
                 }
+                function handleCellClick(e) {
+                    const cell = e.target, index = parseInt(cell.dataset.cellIndex);
+                    if (boardState[index] !== "" || !gameActive) return;
+                    handleCellPlayed(cell, index);
+                    handleResultValidation();
+                    if(gameActive) {
+                        handlePlayerChange();
+                        clickCount++;
+                        if (clickCount === swapTriggerCount) {
+                            swapBoard();
+                            clickCount = 0;
+                            swapTriggerCount = Math.floor(Math.random() * 4) + 3;
+                        }
+                    }
+                }
+                function handleResetGame() {
+                    gameActive = true; currentPlayer = "X"; boardState.fill("");
+                    statusDisplay.innerHTML = playerXTurn();
+                    cells.forEach(cell => { cell.innerHTML = ""; cell.classList.remove('x', 'o'); });
+                    clickCount = 0; swapTriggerCount = Math.floor(Math.random() * 4) + 3;
+                }
+                cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+                resetButton.addEventListener('click', handleResetGame);
             }
         });
     </script>
 </body>
 </html>
-�
