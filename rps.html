@@ -181,7 +181,7 @@
             </div>
             <div class="game-card" data-game-id="tic-tac-toe">
                 <h2>Tic Tac Toe</h2>
-                <p class="text-gray-400">Player 1 (X), Player 2 (O).Play with a little bit of twist</p>
+                <p class="text-gray-400">Player 1 (X) , Player 2 (O). Wait for a twist!</p>
             </div>
         </div>
 
@@ -490,10 +490,11 @@
                 const winningMessage = (player) => `Player ${player} has won!`, drawMessage = () => `Game ended in a draw!`;
                 statusDisplay.innerHTML = playerXTurn();
                 function handleCellPlayed(cell, index) {
-                    // Corrected: The current player's symbol should be placed.
-                    boardState[index] = currentPlayer; // Use currentPlayer directly
-                    cell.innerHTML = currentPlayer; // Use currentPlayer directly
-                    cell.classList.add(currentPlayer.toLowerCase()); // Use currentPlayer directly
+                    // Determine the symbol to place based on the current player
+                    const symbolToPlace = currentPlayer === "X" ? "O" : "X"; 
+                    boardState[index] = symbolToPlace; 
+                    cell.innerHTML = symbolToPlace; 
+                    cell.classList.add(symbolToPlace.toLowerCase()); 
                 }
                 function handlePlayerChange() {
                     currentPlayer = currentPlayer === "X" ? "O" : "X";
@@ -506,7 +507,6 @@
                         if (a && a === b && b === c) { roundWon = true; break; }
                     }
                     if (roundWon) {
-                        // Corrected: The winner is the currentPlayer who just made the winning move.
                         statusDisplay.innerHTML = winningMessage(currentPlayer); 
                         gameActive = false; return;
                     }
