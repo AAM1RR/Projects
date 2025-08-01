@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rock Paper Scissors AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg1: #ff6f61;
+      --bg2: #6c63ff;
+      --text-light: #fff;
+      --win: #4caf50;
+      --lose: #f44336;
+      --draw: #ffc107;
+      --btn: #00c3ff;
+      --btn-hover: #00a6d6;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-top: 40px;
+      text-shadow: 2px 2px 8px #000;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin: 8px 0 20px;
+      color: #eee;
+    }
+
+    #controls {
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background: var(--btn);
+      color: white;
+      font-size: 1.2rem;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      margin: 0 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: var(--btn-hover);
+    }
+
+    .btn:disabled {
+      background: #888;
+      cursor: not-allowed;
+    }
+
+    #result {
+      font-size: 1.4rem;
+      margin-top: 10px;
+      padding: 20px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      max-width: 500px;
+      text-shadow: 1px 1px 4px #000;
+    }
+
+    .win { color: var(--win); font-weight: bold; }
+    .lose { color: var(--lose); font-weight: bold; }
+    .draw { color: var(--draw); font-weight: bold; }
+
+    canvas { display: none; } /* Hide video canvas completely */
+  </style>
+</head>
+<body>
+
+  <h1>🖐 Rock Paper Scissors AI</h1>
+  <p>Show your hand to the camera when you press "Play"</p>
+
+  <div id="controls">
+    <button id="startBtn" class="btn" disabled>🎮 Play Now</button>
+    <button id="resetBtn" class="btn" style="display:none;">🔁 Try Again</button>
+  </div>
+
+  <div id="result">⏳ Loading hand detection model...</div>
+  <canvas id="canvas" width="640" height="480"></canvas>
+
+  <!-- TensorFlow + Fingerpose -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@3.21.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@3.21.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.21.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.0.7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fingerpose@0.1.0/dist/fingerpose.min.js"></script>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const resultEl = document.getElementById('result');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let model, video, detecting = false;
+    const gestures = ['rock', 'paper', 'scissors'];
+
+    const rockGesture = new fp.GestureDescription('rock');
+    ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'].forEach(finger =>
+      rockGesture.addCurl(fp.Finger[finger], fp.FingerCurl.FullCurl, 1.0)
+    );
+
+    const paperGesture = new fp.GestureDescription('paper');
+    ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'].forEach(finger => {
+      paperGesture.addCurl(fp.Finger[finger], fp.FingerCurl.NoCurl, 1.0);
+      paperGesture.addDirection(fp.Finger[finger], fp.FingerDirection.VerticalUp, 0.8);
+    });
+
+    const scissorsGesture = new fp.GestureDescription('scissors');
+    scissorsGesture.addCurl(fp.Finger.Index, fp.FingerCurl.NoCurl, 1.0);
+    scissorsGesture.addCurl(fp.Finger.Middle, fp.FingerCurl.NoCurl, 1.0);
+    scissorsGesture.addCurl(fp.Finger.Ring, fp.FingerCurl.FullCurl, 1.0);
+    scissorsGesture.addCurl(fp.Finger.Pinky, fp.FingerCurl.FullCurl, 1.0);
+    scissorsGesture.addCurl(fp.Finger.Thumb, fp.FingerCurl.HalfCurl, 0.8);
+
+    async function loadModel() {
+      await tf.setBackend('webgl');
+      model = await handpose.load();
+      resultEl.textContent = "✅ Model loaded! Click Play to start.";
+      startBtn.disabled = false;
+    }
+
+    async function startCamera() {
+      video = document.createElement('video');
+      video.setAttribute('playsinline', '');
+      video.setAttribute('autoplay', '');
+      video.setAttribute('muted', '');
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+
+      return new Promise(resolve => {
+        video.onloadedmetadata = () => {
+          video.play();
+          resolve();
+        };
+      });
+    }
+
+    function getResult(player, pc) {
+      if (player === pc) return { msg: "🤝 It's a draw!", class: "draw" };
+      if (
+        (player === 'rock' && pc === 'scissors') ||
+        (player === 'paper' && pc === 'rock') ||
+        (player === 'scissors' && pc === 'paper')
+      ) return { msg: "🎉 You win!", class: "win" };
+      return { msg: "😢 You lose!", class: "lose" };
+    }
+
+    async function detectOnce() {
+      detecting = true;
+      resultEl.textContent = "🧠 Detecting your gesture...";
+
+      const GE = new fp.GestureEstimator([
+        rockGesture,
+        paperGesture,
+        scissorsGesture
+      ]);
+
+      let tries = 0, maxTries = 150;
+
+      function loop() {
+        requestAnimationFrame(async () => {
+          if (!detecting || tries++ > maxTries) return;
+
+          const predictions = await model.estimateHands(video, true);
+
+          if (predictions.length > 0) {
+            const est = GE.estimate(predictions[0].landmarks, 8.5);
+            if (est.gestures.length > 0) {
+              const gesture = est.gestures.reduce((a, b) => a.score > b.score ? a : b);
+              const user = gesture.name.toLowerCase();
+              const pc = gestures[Math.floor(Math.random() * 3)];
+              const outcome = getResult(user, pc);
+
+              resultEl.innerHTML = `🖐 You: ${user}<br>💻 PC: ${pc}<br><br><span class="${outcome.class}">${outcome.msg}</span>`;
+              startBtn.style.display = "none";
+              resetBtn.style.display = "inline-block";
+              detecting = false;
+              return;
+            }
+          }
+
+          loop();
+        });
+      }
+
+      loop();
+    }
+
+    startBtn.addEventListener('click', () => {
+      startBtn.disabled = true;
+      detectOnce();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      resultEl.textContent = "Click Play to try again.";
+      startBtn.disabled = false;
+      startBtn.style.display = "inline-block";
+      resetBtn.style.display = "none";
+    });
+
+    (async () => {
+      await loadModel();
+      await startCamera();
+    })();
+  </script>
+</body>
+</html>
