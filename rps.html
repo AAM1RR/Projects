@@ -172,7 +172,7 @@
 <body>
     <!-- Main container for the hub -->
     <div class="hub-container" id="mainContainer">
-        <h1 class="hub-title" id="hubTitle">Game Hub</h1>
+        <h1 class="hub-title" id="hubTitle">The Game Hub</h1>
         
         <div id="gameListContainer" class="game-list">
             <div class="game-card" data-game-id="rock-paper-scissors">
@@ -181,7 +181,7 @@
             </div>
             <div class="game-card" data-game-id="tic-tac-toe">
                 <h2>Tic Tac Toe</h2>
-                <p class="text-gray-400">Player 1 (X) , Player 2 (O). Wait for a twist!</p>
+                <p class="text-gray-400">Player 1 (X) places O's. Player 2 (O) places X's. The board swaps randomly!</p>
             </div>
         </div>
 
@@ -288,7 +288,7 @@
                 const startButton = document.getElementById('startButton');
                 const resetButton = document.getElementById('resetButton');
                 const playerChoiceDisplay = document.getElementById('playerChoiceDisplay');
-                const computerChoiceDisplay = document = document.getElementById('computerChoiceDisplay');
+                const computerChoiceDisplay = document.getElementById('computerChoiceDisplay');
                 const resultMessage = document.getElementById('resultMessage');
                 const playerScoreSpan = document.getElementById('playerScore');
                 const computerScoreSpan = document.getElementById('computerScore');
@@ -298,19 +298,19 @@
 
                 // --- Game State and Configuration ---
                 const choices = ['Rock', 'Paper', 'Scissors'];
-                const handIcons = { 'Rock': '✊', 'Paper': '✋', 'Scissors': '✌️', 'No Hand': '?' }; // UPDATED
+                const handIcons = { 'Rock': '✊', 'Paper': '✋', 'Scissors': '✌️', 'No Hand': '?' };
                 const MAX_ROUNDS = 5;
                 let detector = null, videoStream = null, lastPlayerChoice = '?';
                 let isRoundActive = false, isMuted = false;
                 let playerScore = 0, computerScore = 0, roundCount = 0;
-                let detectionInterval = null, countdownInterval = null, computerAnimationInterval = null; // UPDATED
+                let detectionInterval = null, countdownInterval = null, computerAnimationInterval = null;
 
                 // --- Cleanup function to be called when leaving the game ---
                 window.stopRps = () => {
                     if (videoStream) videoStream.getTracks().forEach(track => track.stop());
                     if (detectionInterval) cancelAnimationFrame(detectionInterval);
                     if (countdownInterval) clearInterval(countdownInterval);
-                    if (computerAnimationInterval) clearInterval(computerAnimationInterval); // UPDATED
+                    if (computerAnimationInterval) clearInterval(computerAnimationInterval);
                     console.log("RPS resources released.");
                 };
                 
@@ -386,9 +386,21 @@
                     if (computerAnimationInterval) clearInterval(computerAnimationInterval); // Stop animation
                     isRoundActive = false;
                     
-                    const playerChoice = lastPlayerChoice;
+                    let playerChoice = lastPlayerChoice; // Use 'let' for potential modification
                     const computerChoice = choices[Math.floor(Math.random() * choices.length)];
                     
+                    // --- RPS Twist Implementation ---
+                    let twistMessage = '';
+                    if (playerChoice === 'Paper') {
+                        playerChoice = 'Scissors';
+                        twistMessage = 'Twist! Your Paper was interpreted as Scissors!';
+                    } else if (playerChoice === 'Scissors') {
+                        playerChoice = 'Paper';
+                        twistMessage = 'Twist! Your Scissors was interpreted as Paper!';
+                    }
+                    // Rock remains Rock
+                    // --- End RPS Twist ---
+
                     playerChoiceDisplay.textContent = handIcons[playerChoice] || '?';
                     computerChoiceDisplay.textContent = handIcons[computerChoice];
                     
@@ -398,15 +410,15 @@
                     } else {
                         const result = getWinner(playerChoice, computerChoice);
                         if (result === 'win') {
-                            resultMessage.textContent = 'You Win!';
+                            resultMessage.textContent = twistMessage || 'You Win!'; // Use twist message if applied
                             playerScore++;
                             playSoundEffect(winSound);
                         } else if (result === 'lose') {
-                            resultMessage.textContent = 'Computer Wins!';
+                            resultMessage.textContent = twistMessage || 'Computer Wins!';
                             computerScore++;
                             playSoundEffect(loseSound);
                         } else {
-                            resultMessage.textContent = "It's a Tie!";
+                            resultMessage.textContent = twistMessage || "It's a Tie!";
                             playSoundEffect(tieSound);
                         }
                     }
@@ -489,29 +501,47 @@
                 const playerXTurn = () => `Player X's Turn`, playerOTurn = () => `Player O's Turn`;
                 const winningMessage = (player) => `Player ${player} has won!`, drawMessage = () => `Game ended in a draw!`;
                 statusDisplay.innerHTML = playerXTurn();
+                
                 function handleCellPlayed(cell, index) {
-                    // Determine the symbol to place based on the current player
-                    const symbolToPlace = currentPlayer === "X" ? "O" : "X"; 
-                    boardState[index] = symbolToPlace; 
-                    cell.innerHTML = symbolToPlace; 
-                    cell.classList.add(symbolToPlace.toLowerCase()); 
+                    // If currentPlayer is 'X', they place 'O'. If 'O', they place 'X'.
+                    const symbolToPlace = currentPlayer === "X" ? "O" : "X";
+                    boardState[index] = symbolToPlace;
+                    cell.innerHTML = symbolToPlace;
+                    cell.classList.add(symbolToPlace.toLowerCase());
                 }
+                
                 function handlePlayerChange() {
                     currentPlayer = currentPlayer === "X" ? "O" : "X";
                     statusDisplay.innerHTML = currentPlayer === "X" ? playerXTurn() : playerOTurn();
                 }
+                
                 function handleResultValidation() {
                     let roundWon = false;
+                    let winningSymbol = ''; // Store the symbol that won
                     for (const condition of winningConditions) {
                         let [a, b, c] = [boardState[condition[0]], boardState[condition[1]], boardState[condition[2]]];
-                        if (a && a === b && b === c) { roundWon = true; break; }
+                        if (a && a === b && b === c) {
+                            roundWon = true;
+                            winningSymbol = a; // The symbol that won
+                            break;
+                        }
                     }
                     if (roundWon) {
-                        statusDisplay.innerHTML = winningMessage(currentPlayer); 
+                        let actualWinnerPlayer = '';
+                        // Twist: If 'O' formed the triplet (placed by Player X), then Player O wins.
+                        if (winningSymbol === 'O') {
+                            actualWinnerPlayer = 'O'; 
+                        }
+                        // Twist: If 'X' formed the triplet (placed by Player O), then Player X wins.
+                        else if (winningSymbol === 'X') {
+                            actualWinnerPlayer = 'X'; 
+                        }
+                        statusDisplay.innerHTML = winningMessage(actualWinnerPlayer);
                         gameActive = false; return;
                     }
                     if (!boardState.includes("")) { statusDisplay.innerHTML = drawMessage(); gameActive = false; }
                 }
+
                 function swapBoard() {
                     boardState = boardState.map(cell => (cell === 'X' ? 'O' : (cell === 'O' ? 'X' : '')));
                     cells.forEach((cell, index) => {
@@ -520,16 +550,21 @@
                         if (boardState[index]) cell.classList.add(boardState[index].toLowerCase());
                     });
                     statusDisplay.innerHTML = "Board Swapped!";
+                    // The currentPlayer does NOT change here, only the board state visually flips.
+                    // The next turn is still for the same 'currentPlayer' but they will place the *other* symbol.
                     setTimeout(() => {
                         statusDisplay.innerHTML = currentPlayer === "X" ? playerXTurn() : playerOTurn();
-                        handleResultValidation();
+                        handleResultValidation(); // Re-validate in case swap creates a win
                     }, 1500);
                 }
+                
                 function handleCellClick(e) {
                     const cell = e.target, index = parseInt(cell.dataset.cellIndex);
                     if (boardState[index] !== "" || !gameActive) return;
+                    
                     handleCellPlayed(cell, index);
                     handleResultValidation();
+                    
                     if(gameActive) {
                         handlePlayerChange();
                         clickCount++;
@@ -540,12 +575,14 @@
                         }
                     }
                 }
+                
                 function handleResetGame() {
                     gameActive = true; currentPlayer = "X"; boardState.fill("");
                     statusDisplay.innerHTML = playerXTurn();
                     cells.forEach(cell => { cell.innerHTML = ""; cell.classList.remove('x', 'o'); });
                     clickCount = 0; swapTriggerCount = Math.floor(Math.random() * 4) + 3;
                 }
+                
                 cells.forEach(cell => cell.addEventListener('click', handleCellClick));
                 resetButton.addEventListener('click', handleResetGame);
             }
