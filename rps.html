@@ -1,226 +1,816 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Rock Paper Scissors AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root {
-      --bg1: #ff6f61;
-      --bg2: #6c63ff;
-      --text-light: #fff;
-      --win: #4caf50;
-      --lose: #f44336;
-      --draw: #ffc107;
-      --btn: #00c3ff;
-      --btn-hover: #00a6d6;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awesome Game Hub</title>
+    <!-- Tailwind CSS and Fonts (Shared by all games) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+    <!-- TensorFlow.js and Hand Pose Detection (Shared) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
+    
+    <style>
+        /* General body styling */
+        body {
+            font-family: 'Bebas Neue', sans-serif;
+            background-color: #000;
+            background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            overflow-y: auto;
+        }
 
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, var(--bg1), var(--bg2));
-      color: var(--text-light);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      height: 100vh;
-      overflow: hidden;
-    }
+        /* Hub-specific container styling */
+        .hub-container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 3rem;
+            background-color: #121212;
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+            border: 2px solid #ccc;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    h1 {
-      font-size: 3rem;
-      margin-top: 40px;
-      text-shadow: 2px 2px 8px #000;
-    }
+        /* Game container styling (used when a game is loaded) */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1000px;
+            padding: 3rem;
+            background-color: #121212;
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+            border: 2px solid #ccc;
+            animation: fadeIn 1s ease-in-out;
+            flex-grow: 1;
+        }
 
-    p {
-      font-size: 1.2rem;
-      margin: 8px 0 20px;
-      color: #eee;
-    }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-    #controls {
-      margin-bottom: 20px;
-    }
+        /* Titles */
+        .hub-title {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+        }
 
-    .btn {
-      background: var(--btn);
-      color: white;
-      font-size: 1.2rem;
-      padding: 12px 28px;
-      border: none;
-      border-radius: 10px;
-      margin: 0 10px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: background 0.3s ease;
-    }
+        /* Game list layout */
+        .game-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+        }
 
-    .btn:hover {
-      background: var(--btn-hover);
-    }
+        /* Individual game card styling */
+        .game-card {
+            background-color: #222;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            width: 250px;
+        }
 
-    .btn:disabled {
-      background: #888;
-      cursor: not-allowed;
-    }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
+        }
 
-    #result {
-      font-size: 1.4rem;
-      margin-top: 10px;
-      padding: 20px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 12px;
-      max-width: 500px;
-      text-shadow: 1px 1px 4px #000;
-    }
+        .game-card h2 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            color: #fff;
+        }
 
-    .win { color: var(--win); font-weight: bold; }
-    .lose { color: var(--lose); font-weight: bold; }
-    .draw { color: var(--draw); font-weight: bold; }
+        /* Back button styling */
+        #backButton {
+            margin-top: 2rem;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            color: #fff;
+            background-color: #555;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            display: none; /* Initially hidden */
+        }
+        
+        /* Rock Paper Scissors specific styles (merged from original file) */
+        h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.2);
+        }
 
-    canvas { display: none; } /* Hide video canvas completely */
-  </style>
+        .choices-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            padding: 1rem 0;
+        }
+
+        .choice-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            width: 45%;
+        }
+
+        .choice-label {
+            font-size: 1.8rem;
+            color: #ddd;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .choice-result {
+            min-height: 10rem;
+            font-size: 7rem;
+            color: #aaa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease-out;
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .player-choice {
+            color: #fff;
+            text-shadow: 2px 2px 4px #444;
+        }
+        
+        .computer-choice {
+            color: #fff;
+            text-shadow: 2px 2px 4px #444;
+        }
+
+        .shaking-hand {
+            animation: shake 0.2s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(5deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        .result-message {
+            min-height: 4rem;
+            font-size: 3rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #eee;
+            text-shadow: 1px 1px 3px #555;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .game-button {
+            padding: 1rem 2.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #fff;
+            background-color: #333;
+            border: 2px solid #555;
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .game-button:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
+            background-color: #444;
+        }
+        
+        .game-button:disabled {
+            background-color: #222;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        #muteButton {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 1.5rem;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            z-index: 10;
+        }
+
+        #muteButton:hover {
+            transform: scale(1.1);
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+            font-size: 2rem;
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        /* The video element is now hidden from the user */
+        #webcam {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            font-size: 2.2rem;
+            margin-top: 1rem;
+            color: #fff;
+            text-shadow: 1px 1px 3px #555;
+        }
+
+        .round-counter {
+            font-size: 2rem;
+            color: #ddd;
+            text-align: center;
+            margin-top: 1rem;
+            text-shadow: 1px 1px 2px #333;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+        .modal-content {
+            background: #121212;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.8rem;
+            border: 2px solid #fff;
+        }
+
+        @media (max-width: 768px) {
+            .hub-container, .game-container {
+                padding: 1.5rem;
+                gap: 1rem;
+            }
+            .hub-title, h1 { font-size: 2.5rem; letter-spacing: 0.1em; }
+            .choice-label { font-size: 1.5rem; }
+            .choice-result { font-size: 5rem; min-height: 8rem; }
+            .result-message { font-size: 2.5rem; min-height: 3rem; }
+            .game-button { padding: 0.75rem 2rem; font-size: 1.25rem; }
+            .score-container { font-size: 1.8rem; }
+            #muteButton { top: 1rem; right: 1rem; width: 2.5rem; height: 2.5rem; font-size: 1.25rem; }
+        }
+    </style>
 </head>
 <body>
+    <!-- Main container for the hub -->
+    <div class="hub-container" id="mainContainer">
+        <h1 class="hub-title" id="hubTitle">The Game Hub</h1>
+        
+        <!-- Game list visible initially -->
+        <div id="gameListContainer" class="game-list">
+            <div class="game-card" data-game-id="rock-paper-scissors">
+                <h2>Rock Paper Scissors</h2>
+                <p class="text-gray-400">Play with your hand gestures!</p>
+            </div>
+            <!-- Add more game cards here -->
+        </div>
 
-  <h1>🖐 Rock Paper Scissors AI</h1>
-  <p>Show your hand to the camera when you press "Play"</p>
+        <!-- This is where the selected game will be loaded -->
+        <div id="gameContentContainer"></div>
+        
+        <button id="backButton">Back to Hub</button>
+    </div>
 
-  <div id="controls">
-    <button id="startBtn" class="btn" disabled>🎮 Play Now</button>
-    <button id="resetBtn" class="btn" style="display:none;">🔁 Try Again</button>
-  </div>
+    <!-- The Rock Paper Scissors game content, stored in a hidden template -->
+    <template id="rock-paper-scissors-template">
+        <div class="game-container" id="gameContainer">
+            <h1 class="text-center mb-8">Rock Paper Scissors</h1>
+            
+            <!-- Mute/Unmute button -->
+            <button id="muteButton" class="fa-solid fa-volume-high">🔊</button>
 
-  <div id="result">⏳ Loading hand detection model...</div>
-  <canvas id="canvas" width="640" height="480"></canvas>
+            <!-- Custom sound effects. The win sound has been updated. -->
+            <audio id="winSound" src="song.mp3" preload="auto"></audio>
+            <audio id="loseSound" src="ayyoo.mp3" preload="auto"></audio>
+            <audio id="tieSound" src="sayip.mp3" preload="auto"></audio>
 
-  <!-- TensorFlow + Fingerpose -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@3.21.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@3.21.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.21.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.0.7"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fingerpose@0.1.0/dist/fingerpose.min.js"></script>
+            <!-- Modal for messages -->
+            <div id="messageModal" class="modal">
+                <div class="modal-content">
+                    <p id="modalMessage"></p>
+                </div>
+            </div>
 
-  <script>
-    const canvas = document.getElementById('canvas');
-    const resultEl = document.getElementById('result');
-    const startBtn = document.getElementById('startBtn');
-    const resetBtn = document.getElementById('resetBtn');
+            <!-- Loading overlay for model and webcam -->
+            <div id="loadingOverlay" class="loading-overlay">
+                <span>Loading game assets...</span>
+                <span>Please allow webcam access.</span>
+            </div>
 
-    let model, video, detecting = false;
-    const gestures = ['rock', 'paper', 'scissors'];
+            <div class="choices-container">
+                <!-- Player Display -->
+                <div class="choice-display">
+                    <span class="choice-label">Your Hand</span>
+                    <span id="playerChoiceDisplay" class="choice-result player-choice">?</span>
+                </div>
 
-    const rockGesture = new fp.GestureDescription('rock');
-    ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'].forEach(finger =>
-      rockGesture.addCurl(fp.Finger[finger], fp.FingerCurl.FullCurl, 1.0)
-    );
+                <!-- Computer Display -->
+                <div class="choice-display">
+                    <span class="choice-label">Computer</span>
+                    <span id="computerChoiceDisplay" class="choice-result computer-choice">?</span>
+                </div>
+            </div>
 
-    const paperGesture = new fp.GestureDescription('paper');
-    ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'].forEach(finger => {
-      paperGesture.addCurl(fp.Finger[finger], fp.FingerCurl.NoCurl, 1.0);
-      paperGesture.addDirection(fp.Finger[finger], fp.FingerDirection.VerticalUp, 0.8);
-    });
+            <!-- Game result message -->
+            <div id="resultMessage" class="result-message">Press START to play!</div>
 
-    const scissorsGesture = new fp.GestureDescription('scissors');
-    scissorsGesture.addCurl(fp.Finger.Index, fp.FingerCurl.NoCurl, 1.0);
-    scissorsGesture.addCurl(fp.Finger.Middle, fp.FingerCurl.NoCurl, 1.0);
-    scissorsGesture.addCurl(fp.Finger.Ring, fp.FingerCurl.FullCurl, 1.0);
-    scissorsGesture.addCurl(fp.Finger.Pinky, fp.FingerCurl.FullCurl, 1.0);
-    scissorsGesture.addCurl(fp.Finger.Thumb, fp.FingerCurl.HalfCurl, 0.8);
+            <!-- Round and Score container -->
+            <div class="flex flex-col items-center">
+                <div class="flex flex-col gap-2 w-full text-center">
+                    <span>You: <span id="playerScore">0</span></span>
+                    <span>Computer: <span id="computerScore">0</span></span>
+                </div>
+                <div class="round-counter mt-4">Round <span id="roundCounter">0</span> / 5</div>
+            </div>
 
-    async function loadModel() {
-      await tf.setBackend('webgl');
-      model = await handpose.load();
-      resultEl.textContent = "✅ Model loaded! Click Play to start.";
-      startBtn.disabled = false;
-    }
+            <!-- Hidden webcam feed - used for hand detection without being visible -->
+            <video id="webcam" playsinline></video>
 
-    async function startCamera() {
-      video = document.createElement('video');
-      video.setAttribute('playsinline', '');
-      video.setAttribute('autoplay', '');
-      video.setAttribute('muted', '');
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
+            <!-- Buttons -->
+            <div class="buttons-container">
+                <button id="startButton" class="game-button">Start Round</button>
+                <button id="resetButton" class="game-button" disabled>Reset Game</button>
+            </div>
+        </div>
+    </template>
 
-      return new Promise(resolve => {
-        video.onloadedmetadata = () => {
-          video.play();
-          resolve();
-        };
-      });
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Hub UI Elements ---
+            const mainContainer = document.getElementById('mainContainer');
+            const hubTitle = document.getElementById('hubTitle');
+            const gameListContainer = document.getElementById('gameListContainer');
+            const gameContentContainer = document.getElementById('gameContentContainer');
+            const backButton = document.getElementById('backButton');
+            
+            // --- Hub Logic ---
+            
+            /**
+             * Loads the content of a game from its template and appends it to the main container.
+             * @param {string} gameId - The ID of the game to load (matches the template ID).
+             */
+            function loadGame(gameId) {
+                const template = document.getElementById(`${gameId}-template`);
+                if (!template) {
+                    console.error(`Template with ID '${gameId}-template' not found.`);
+                    return;
+                }
+                
+                // Clone the template content and append it
+                const gameContent = template.content.cloneNode(true);
+                gameContentContainer.appendChild(gameContent);
 
-    function getResult(player, pc) {
-      if (player === pc) return { msg: "🤝 It's a draw!", class: "draw" };
-      if (
-        (player === 'rock' && pc === 'scissors') ||
-        (player === 'paper' && pc === 'rock') ||
-        (player === 'scissors' && pc === 'paper')
-      ) return { msg: "🎉 You win!", class: "win" };
-      return { msg: "😢 You lose!", class: "lose" };
-    }
+                // Hide the hub list and show the game content and back button
+                gameListContainer.style.display = 'none';
+                gameContentContainer.style.display = 'block';
+                backButton.style.display = 'block';
+                hubTitle.style.display = 'none';
+                mainContainer.classList.remove('hub-container');
+                mainContainer.classList.add('game-container');
 
-    async function detectOnce() {
-      detecting = true;
-      resultEl.textContent = "🧠 Detecting your gesture...";
-
-      const GE = new fp.GestureEstimator([
-        rockGesture,
-        paperGesture,
-        scissorsGesture
-      ]);
-
-      let tries = 0, maxTries = 150;
-
-      function loop() {
-        requestAnimationFrame(async () => {
-          if (!detecting || tries++ > maxTries) return;
-
-          const predictions = await model.estimateHands(video, true);
-
-          if (predictions.length > 0) {
-            const est = GE.estimate(predictions[0].landmarks, 8.5);
-            if (est.gestures.length > 0) {
-              const gesture = est.gestures.reduce((a, b) => a.score > b.score ? a : b);
-              const user = gesture.name.toLowerCase();
-              const pc = gestures[Math.floor(Math.random() * 3)];
-              const outcome = getResult(user, pc);
-
-              resultEl.innerHTML = `🖐 You: ${user}<br>💻 PC: ${pc}<br><br><span class="${outcome.class}">${outcome.msg}</span>`;
-              startBtn.style.display = "none";
-              resetBtn.style.display = "inline-block";
-              detecting = false;
-              return;
+                // Initialize the game's script
+                if (gameId === 'rock-paper-scissors') {
+                    initRockPaperScissors();
+                }
             }
-          }
 
-          loop();
+            /**
+             * Resets the UI back to the main game hub.
+             */
+            function unloadGame() {
+                // Remove all game content
+                gameContentContainer.innerHTML = '';
+                
+                // Show the game list and hide the game content and back button
+                gameListContainer.style.display = 'flex';
+                gameContentContainer.style.display = 'none';
+                backButton.style.display = 'none';
+                hubTitle.style.display = 'block';
+                mainContainer.classList.add('hub-container');
+                mainContainer.classList.remove('game-container');
+            }
+
+            // Event listener for the game cards
+            gameListContainer.addEventListener('click', (event) => {
+                const gameCard = event.target.closest('.game-card');
+                if (gameCard) {
+                    const gameId = gameCard.dataset.gameId;
+                    if (gameId) {
+                        loadGame(gameId);
+                    }
+                }
+            });
+
+            // Event listener for the back button
+            backButton.addEventListener('click', unloadGame);
+
+            // --- Rock Paper Scissors Game Logic (encapsulated) ---
+            
+            /**
+             * Initializes the Rock Paper Scissors game logic.
+             * This function is called after the game's HTML is loaded.
+             */
+            async function initRockPaperScissors() {
+                // --- UI Elements ---
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                const gameContainer = document.getElementById('gameContainer');
+                const startButton = document.getElementById('startButton');
+                const resetButton = document.getElementById('resetButton');
+                const webcamElement = document.getElementById('webcam');
+                const playerChoiceDisplay = document.getElementById('playerChoiceDisplay');
+                const computerChoiceDisplay = document.getElementById('computerChoiceDisplay');
+                const resultMessage = document.getElementById('resultMessage');
+                const playerScoreSpan = document.getElementById('playerScore');
+                const computerScoreSpan = document.getElementById('computerScore');
+                const roundCounterSpan = document.getElementById('roundCounter');
+                const modal = document.getElementById('messageModal');
+                const modalMessage = document.getElementById('modalMessage');
+                const muteButton = document.getElementById('muteButton');
+                
+                // --- Audio Elements ---
+                const winSound = document.getElementById('winSound');
+                const loseSound = document.getElementById('loseSound');
+                const tieSound = document.getElementById('tieSound');
+                const goSound = document.getElementById('goSound');
+                const audioElements = [winSound, loseSound, tieSound, goSound];
+
+                // --- Game State Variables ---
+                const choices = ['Rock', 'Paper', 'Scissors'];
+                const handIcons = {
+                    'Rock': '✊',
+                    'Paper': '✋',
+                    'Scissors': '✌️',
+                    'No Hand': '�️'
+                };
+                const MAX_ROUNDS = 5;
+                let detector = null;
+                let videoStream = null;
+                let lastPlayerChoice = '?';
+                let isRoundActive = false;
+                let countdownInterval = null;
+                let playerScore = 0;
+                let computerScore = 0;
+                let roundCount = 0;
+                let isMuted = false;
+                
+                // --- Utility Functions ---
+
+                // Function to show a custom message modal
+                function showMessageModal(message, duration = 3000) {
+                    modalMessage.textContent = message;
+                    modal.style.display = 'flex';
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, duration);
+                }
+
+                // Function to determine hand gesture from landmarks
+                function getGesture(landmarks) {
+                    // Simplified logic: check for bent fingers.
+                    const tips = [8, 12, 16, 20];
+                    const knuckles = [6, 10, 14, 18];
+                    const thumbTipX = landmarks[4].x;
+                    const indexKnuckleX = landmarks[5].x;
+
+                    let fingersUp = 0;
+                    for (let i = 0; i < tips.length; i++) {
+                        if (landmarks[tips[i]].y < landmarks[knuckles[i]].y) {
+                            fingersUp++;
+                        }
+                    }
+
+                    if (fingersUp === 0) {
+                        return 'Rock';
+                    }
+                    else if (fingersUp === 2) {
+                        if (landmarks[8].y < landmarks[6].y && landmarks[12].y < landmarks[10].y) {
+                            return 'Scissors';
+                        }
+                    }
+                    else if (fingersUp >= 3) {
+                        if (Math.abs(thumbTipX - indexKnuckleX) > 0.1) {
+                             return 'Paper';
+                        }
+                    }
+                    return 'No Hand';
+                }
+
+                // Function to play a specified sound effect
+                function playSoundEffect(audioElement) {
+                    if (!isMuted) {
+                        audioElement.currentTime = 0; // Rewind to start in case it's already playing
+                        audioElement.play().catch(e => console.error("Error playing sound:", e));
+                    }
+                }
+
+
+                // --- Game Logic ---
+
+                // Main game loop for hand detection
+                async function detectHand() {
+                    // Check if the video stream is still active, as it's now hidden
+                    if (!videoStream || !videoStream.active) {
+                        isRoundActive = false;
+                        showMessageModal("Camera is turned off. Please go back to the hub and re-enter the game.");
+                        return;
+                    }
+
+                    if (detector) {
+                        const predictions = await detector.estimateHands(webcamElement);
+                        if (isRoundActive && predictions.length > 0) {
+                            // Only update the display with the live gesture when a round is active
+                            const gesture = getGesture(predictions[0].keypoints);
+                            playerChoiceDisplay.textContent = handIcons[gesture] || '?';
+                            lastPlayerChoice = gesture;
+                        } else if (isRoundActive && predictions.length === 0) {
+                            playerChoiceDisplay.textContent = handIcons['No Hand'];
+                            lastPlayerChoice = 'No Hand';
+                            resultMessage.textContent = 'Place your hand in view!';
+                        }
+                    }
+                    requestAnimationFrame(detectHand);
+                }
+
+                // The main round logic
+                async function startRound() {
+                    if (isRoundActive) return;
+                    
+                    isRoundActive = true;
+                    startButton.disabled = true;
+                    resetButton.disabled = true;
+
+                    // Reset UI for the new round
+                    resultMessage.textContent = 'Get Ready!';
+                    playerChoiceDisplay.textContent = '?';
+                    computerChoiceDisplay.textContent = '?';
+
+                    // Add shaking animation to computer's hand
+                    computerChoiceDisplay.classList.add('shaking-hand');
+                    
+                    // Countdown to start the round
+                    let countdown = 3;
+                    resultMessage.textContent = countdown;
+                    countdownInterval = setInterval(() => {
+                        countdown--;
+                        if (countdown > 0) {
+                            resultMessage.textContent = countdown;
+                        } else if (countdown === 0) {
+                            resultMessage.textContent = "GO!";
+                            playSoundEffect(goSound);
+                        } else {
+                            clearInterval(countdownInterval);
+                            countdownInterval = null;
+                            computerChoiceDisplay.classList.remove('shaking-hand');
+                            
+                            // Lock in choices and determine winner
+                            isRoundActive = false;
+                            playRound();
+                        }
+                    }, 1000);
+                }
+
+                function playRound() {
+                    const playerChoice = lastPlayerChoice;
+                    if (playerChoice === 'No Hand' || playerChoice === '?') {
+                        showMessageModal("No hand detected! Try again.");
+                        resetRound();
+                        return;
+                    }
+
+                    const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+                    
+                    // Update UI with final choices
+                    playerChoiceDisplay.textContent = handIcons[playerChoice];
+                    computerChoiceDisplay.textContent = handIcons[computerChoice];
+                    
+                    const result = getWinner(playerChoice, computerChoice);
+                    
+                    let resultText = '';
+                    if (result === 'win') {
+                        resultText = 'You Win!';
+                        resultMessage.style.color = '#fff';
+                        playerScore++;
+                        playerScoreSpan.textContent = playerScore;
+                        playSoundEffect(winSound);
+                    } else if (result === 'lose') {
+                        resultText = 'Computer Wins!';
+                        resultMessage.style.color = '#fff';
+                        computerScore++;
+                        computerScoreSpan.textContent = computerScore;
+                        playSoundEffect(loseSound);
+                    } else {
+                        resultText = 'It\'s a Tie!';
+                        resultMessage.style.color = '#eee';
+                        playSoundEffect(tieSound);
+                    }
+
+                    resultMessage.textContent = resultText;
+                    
+                    roundCount++;
+                    roundCounterSpan.textContent = roundCount;
+
+                    if (roundCount >= MAX_ROUNDS) {
+                        announceGameWinner();
+                    } else {
+                        startButton.disabled = false;
+                        resetButton.disabled = false;
+                    }
+                }
+
+                function announceGameWinner() {
+                    startButton.disabled = true;
+                    resetButton.disabled = false;
+
+                    let finalMessage = '';
+                    if (playerScore > computerScore) {
+                        finalMessage = `You win the game with ${playerScore} points!`;
+                    } else if (computerScore > playerScore) {
+                        finalMessage = `The computer wins the game with ${computerScore} points!`;
+                    } else {
+                        finalMessage = `The game is a tie! You both scored ${playerScore} points.`;
+                    }
+
+                    resultMessage.textContent = finalMessage;
+                    resultMessage.style.color = '#fff';
+                }
+
+                function getWinner(player, computer) {
+                    if (player === computer) return 'tie';
+                    if (
+                        (player === 'Rock' && computer === 'Scissors') ||
+                        (player === 'Paper' && computer === 'Rock') ||
+                        (player === 'Scissors' && computer === 'Paper')
+                    ) return 'win';
+                    return 'lose';
+                }
+
+                function resetRound() {
+                    if (countdownInterval) {
+                        clearInterval(countdownInterval);
+                        computerChoiceDisplay.classList.remove('shaking-hand');
+                    }
+
+                    isRoundActive = false;
+                    startButton.disabled = false;
+                    resetButton.disabled = false;
+
+                    playerChoiceDisplay.textContent = '?';
+                    computerChoiceDisplay.textContent = '?';
+                    resultMessage.textContent = 'Press START to play!';
+                    resultMessage.style.color = '#eee';
+                }
+
+                function resetGame() {
+                    resetRound();
+                    playerScore = 0;
+                    computerScore = 0;
+                    roundCount = 0;
+                    playerScoreSpan.textContent = playerScore;
+                    computerScoreSpan.textContent = computerScore;
+                    roundCounterSpan.textContent = roundCount;
+                }
+
+                // --- Initialization and Event Listeners ---
+                // This part runs when the game is loaded from the hub
+                try {
+                    if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+                    if (gameContainer) gameContainer.classList.add('hidden');
+                    
+                    // Get webcam stream but do not display it
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    webcamElement.srcObject = videoStream;
+                    await new Promise((resolve) => { webcamElement.onloadedmetadata = () => { resolve(videoStream); }; });
+                    webcamElement.play();
+
+                    const model = handPoseDetection.SupportedModels.MediaPipeHands;
+                    const detectorConfig = { runtime: 'mediapipe', solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands' };
+                    detector = await handPoseDetection.createDetector(model, detectorConfig);
+
+                    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                    if (gameContainer) gameContainer.classList.remove('hidden');
+
+                    detectHand();
+
+                    startButton.addEventListener('click', startRound);
+                    resetButton.addEventListener('click', resetGame);
+                    muteButton.addEventListener('click', () => {
+                        isMuted = !isMuted;
+                        muteButton.textContent = isMuted ? '🔇' : '🔊';
+                        audioElements.forEach(audio => {
+                            if (isMuted) {
+                                audio.pause();
+                            }
+                        });
+                    });
+                    
+                    console.log('Rock Paper Scissors initialized and ready!');
+                } catch (error) {
+                    console.error("Error initializing game:", error);
+                    if (loadingOverlay) loadingOverlay.innerHTML = `<p>Error loading game. Please check your webcam and try again.</p><p>Details: ${error.message}</p>`;
+                }
+            }
         });
-      }
-
-      loop();
-    }
-
-    startBtn.addEventListener('click', () => {
-      startBtn.disabled = true;
-      detectOnce();
-    });
-
-    resetBtn.addEventListener('click', () => {
-      resultEl.textContent = "Click Play to try again.";
-      startBtn.disabled = false;
-      startBtn.style.display = "inline-block";
-      resetBtn.style.display = "none";
-    });
-
-    (async () => {
-      await loadModel();
-      await startCamera();
-    })();
-  </script>
+    </script>
 </body>
 </html>
+�
