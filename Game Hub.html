@@ -839,7 +839,7 @@
                 }
 
                 function toggleControlOrientation() {
-                    controlInverted = !controlInverted;
+                    controlInverted = !controlInverted; // Perform the actual flip
                     if (controlInverted) {
                         drawStatus("Controls: Direct (Hand Up = Bird Up)");
                     } else {
@@ -859,6 +859,9 @@
                     // Initialize control state and start flip interval
                     controlInverted = false; // Start with inverted control
                     drawStatus("Controls: Inverted (Hand Up = Bird Down)");
+                    
+                    // Clear any previous interval before starting a new one
+                    if (flipInterval) clearInterval(flipInterval);
                     flipInterval = setInterval(toggleControlOrientation, FLIP_INTERVAL_TIME);
 
                     gameLoop();
@@ -896,7 +899,7 @@
                     if (!videoStream || !videoStream.active) return;
                     if (detector) {
                         const hands = await detector.estimateHands(webcamElement, {flipHorizontal: true});
-                        if (gameRunning && !gameOver && hands.length > 0) {
+                        if (gameRunning && !gameOver && hands.length > 0) { 
                             // Use the wrist (landmark 0) for vertical position
                             const currentWristY = hands[0].keypoints[0].y;
                             
